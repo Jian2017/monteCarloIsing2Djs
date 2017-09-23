@@ -1,0 +1,314 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Monte-Carlo Simulation   </title>
+
+
+
+
+<style>
+
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+</style>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body>
+<h1  align="center">quantum Monte-Carlo Simulation
+</h1>
+<h2 align="center"> transverse Ising chain with 3-spin interactions terms
+</h2>
+
+
+
+<div style="width:400px; margin:0 auto;">
+<fieldset>
+    (1) open boundary in space, vertical  <br>
+    (2) periodic boundary in imaginary time, horizontal
+</fieldset>
+</div>
+
+
+
+<div >
+    <canvas id="canvas1"  width="360" height="360" >
+    </canvas>
+</div>
+
+
+
+
+<script>
+
+//part one, the class for physics quantities, and update function(algorithm), ...
+
+var N0=36;
+var N1=36;
+var s = new Array(N0);
+for (var i = 0; i < N0; i++) {
+  s[i] = new Array(N1);
+  for (var j = 0; j < N1; j++) {
+    //s[i][j]=1;
+    s[i][j]=1-2*Math.floor(Math.random()*2);
+  }
+}
+
+
+function N0mod(aa){
+  var temp=aa;
+  while (temp<0) {
+    temp=temp+N0;
+  }
+  return temp%N0;
+
+}
+
+
+var physics={
+  la0 : 0.136 ,
+  lambda1 : 0.5 ,
+  lambda2 : 0.0 ,
+
+  update : function(){
+    var x0=Math.floor((Math.random() * N0) );
+    var x1=Math.floor((Math.random() * N1) );
+
+    var mean_f=0.0;
+
+
+/*   if (  Math.random()  < Math.exp( this.lambda1*  (s[N0mod(x0+1)][x1] + s[N0mod(x0-1)][x1]+s[x0][N0mod(x1-1)] +s[x0][N0mod(x1+1)] )*s[x0][x1]   ) ) {
+      s[x0][x1]=-s[x0][x1];
+      plotting.canvas_plot_one(x0,x1);
+    }*/
+    //this can be interesting too
+
+
+
+    //this can be interesting too
+    //this.la0=this.lambda1;
+
+
+    if (  (x1 < N1-2) && (x1>1)  ) {
+      mean_f= this.la0*(s[N0mod(x0+1)][x1] + s[N0mod(x0-1)][x1]) + this.lambda1 * (s[x0][x1-1] + s[x0][x1+1]);
+      mean_f+= this.lambda2 * ( s[N0mod(x0-1)][x1] *  s[N0mod(x0-1)][x1-1] * s[N0mod(x0-1)][x1+1]   );  //down
+      mean_f+= this.lambda2 * ( s[x0][x1-2] *  s[x0][x1-1] * s[N0mod(x0+1)][x1-1]   );  //left
+      mean_f+= this.lambda2 * ( s[x0][x1+2] *  s[x0][x1+1] * s[N0mod(x0+1)][x1+1]   ); //right
+      mean_f+= this.lambda2 * ( s[x0][x1+1] *  s[x0][x1-1] * s[N0mod(x0+1)][x1]   );  //middle
+
+
+    }
+    else if (   x1==N1-2     ) {
+      mean_f= this.la0*(s[N0mod(x0+1)][x1] + s[N0mod(x0-1)][x1]) + this.lambda1 * (s[x0][x1-1] + s[x0][x1+1]);
+      mean_f+= this.lambda2 * ( s[N0mod(x0-1)][x1] *  s[N0mod(x0-1)][x1-1] * s[N0mod(x0-1)][x1+1]   );
+      mean_f+= this.lambda2 * ( s[x0][x1-2] *  s[x0][x1-1] * s[N0mod(x0+1)][x1-1]   );
+      mean_f+= this.lambda2 * ( s[x0][x1+1] *  s[x0][x1-1] * s[N0mod(x0+1)][x1]   );
+    }
+    else if (    x1 == 1 ) {
+      mean_f= this.la0*(s[N0mod(x0+1)][x1] + s[N0mod(x0-1)][x1]) + this.lambda1 * (s[x0][x1-1] + s[x0][x1+1]);
+      mean_f+= this.lambda2 * ( s[N0mod(x0-1)][x1] *  s[N0mod(x0-1)][x1-1] * s[N0mod(x0-1)][x1+1]   );  //down
+      mean_f+= this.lambda2 * ( s[x0][x1+2] *  s[x0][x1+1] * s[N0mod(x0+1)][x1+1]   ); //right
+      mean_f+= this.lambda2 * ( s[x0][x1+1] *  s[x0][x1-1] * s[N0mod(x0+1)][x1]   );  //middle
+
+
+    }
+    else if (x1==0) {
+      mean_f= this.la0*(s[N0mod(x0+1)][x1] + s[N0mod(x0-1)][x1]) + this.lambda1 * ( s[x0][x1+1]);
+      mean_f+= this.lambda2 * ( s[x0][x1+2] *  s[x0][x1+1] * s[N0mod(x0+1)][x1+1]   ); //right
+
+
+    } else {
+      mean_f= this.la0*(s[N0mod(x0+1)][x1] + s[N0mod(x0-1)][x1]) + this.lambda1 * ( s[x0][x1-1]);
+      mean_f+= this.lambda2 * ( s[x0][x1-2] *  s[x0][x1-1] * s[N0mod(x0+1)][x1-1]   );  //left
+
+
+    }
+
+    var dE=2*mean_f*s[x0][x1];
+    if (   dE < 0   ) {
+      s[x0][x1]=-s[x0][x1];
+      plotting.canvas_plot_one(x0,x1);
+    }
+    else if (  Math.random()  < Math.exp(-dE ) ) {
+      s[x0][x1]=-s[x0][x1];
+      plotting.canvas_plot_one(x0,x1);
+    }
+
+
+  }//end of updating function
+
+}
+
+
+//part two the canvas plotting class, choose some color plan to draw
+var plotting = {
+    canvas : document.getElementById('canvas1'),
+
+
+    start : function() {
+        this.context = this.canvas.getContext("2d");
+    },
+
+    canvas_plot : function(){
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.fillStyle="red";
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            this.context.fillStyle="blue";
+            for (var i = 0; i < N0; i++) {
+              for (var j = 0; j < N1; j++) {
+                if ( s[i][j] >0 ) {
+
+                  this.context.fillRect(i*10,j*10,10,10);
+                }
+              }
+            }
+
+      },
+
+    canvas_plot_one : function(x0, x1){
+        if ( s[x0][x1] >0 ) {
+          this.context.fillStyle="blue";
+        }
+        else {
+          this.context.fillStyle="red";
+        }
+        this.context.fillRect(x0*10,x1*10,10,10);
+      }
+    }
+
+
+
+
+plotting.start();
+plotting.canvas_plot();
+
+//part three the control loop, and action when the control bars are touched.
+
+
+var running1=null;
+var mc_speed=1000;
+var mc_flip=20;
+
+function LOOP_1(){
+  for (var i = 0; i < mc_flip; i++) {
+   physics.update();
+  }
+
+}
+
+function LOOP(){
+  if (running1==null) {
+    running1=setInterval("LOOP_1()",1000/mc_speed);
+  }
+}
+
+function LOOP_STOP(){
+  clearInterval(running1);
+  running1=null;
+}
+
+
+
+// well, physics is fun :)
+// I have ate half of sandwich last night, another half is in the office refrig
+function show_mc_speed(newValue)
+{
+  mc_speed=newValue;    //also modifies the physical value
+	document.getElementById("mc_speed_ya").innerHTML="MC_step_per_second="+newValue;
+  LOOP_STOP();
+  LOOP();
+}
+
+function show_mc_flip(newValue)
+{
+  mc_flip=newValue;    //also modifies the physical value
+	document.getElementById("mc_flip_ya").innerHTML="flip_per_step="+newValue;
+  LOOP_STOP();
+  LOOP();
+}
+
+function show_la1(newValue)
+{
+  physics.lambda1=newValue;    //also modifies the physical value
+	document.getElementById("la1_ya").innerHTML="lambda_1="+newValue;
+  LOOP_STOP();
+  LOOP();
+}
+
+function show_la2(newValue)
+{
+  physics.lambda2=newValue;    //also modifies the physical value
+	document.getElementById("la2_ya").innerHTML="lambda_2="+newValue;
+  LOOP_STOP();
+  LOOP();
+}
+
+
+function thermo(){
+  LOOP_STOP();
+  for (var i = 0; i < N0; i++) {
+    for (var j = 0; j < N1; j++) {
+      s[i][j]=1-2*Math.floor(Math.random()*2);
+    }
+  }
+
+  plotting.canvas_plot();
+//  LOOP();
+
+}
+
+</script>
+
+  <div style="width:400px; margin:0 auto;">
+  <fieldset>
+        <button onclick="LOOP_1()">one</button>
+        <button onclick="LOOP()">start</button>
+        <button onclick="LOOP_STOP()">stop</button>
+        <button onclick="thermo()">thermolize</button>
+
+
+        <input  type="range" min="5" max="1000" value="100" step="5" onchange="show_mc_speed(this.value)" />
+        <p id="mc_speed_ya"  align="center">MC_step_per_second=100</p>
+
+        <input  type="range" min="5" max="500" value="100" step="5" onchange="show_mc_flip(this.value)" />
+        <p id="mc_flip_ya"  align="center">flip_per_step=100</p>
+
+
+  </fieldset>
+
+  <fieldset>
+
+            <input id="la1" type="range" min="-3" max="3" value="0.5" step="0.1" onchange="show_la1(this.value)" />
+            <p id="la1_ya"  align="center">lambda_1=0.5</p>
+  </fieldset>
+
+  <fieldset>
+
+            <input id="la2" type="range" min="-2" max="2" value="0.0" step="0.1" onchange="show_la2(this.value)" />
+            <p id="la2_ya"  align="center">lambda_2=0.0</p>
+  </fieldset>
+</div>
+
+
+
+</body>
+</html>
